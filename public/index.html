@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kim Roxane | AI Photo Editor</title>
+<meta name="description" content="Kim Roxane, AI photo editor for commercial brands: AI product photos, 3D mockups, retouching and campaign visuals.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: friendly, simple, straight to the point
+   IDEA: a clean editing app; the work is the hero, the page stays out of the way
+   PICTURE: Kim's cutout portrait on a blue panel, two real mockups beside her
+   COLOUR and TYPE: white + ink black, one cobalt blue accent, pale blue tint fields; Plus Jakarta Sans only
+   LAYOUT: tinted first screen, big work grid with filters and lightbox, white bands, blue contact band */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0e1014);--ink:light-dark(#111318,#eceef3);--soft:light-dark(#5d6270,#a3a8b6);
+--line:light-dark(#e6e8ee,#232733);--card:light-dark(#f5f6f9,#161a22);--tint:light-dark(#eef1ff,#141a2e);
+--blue:#3355ff;--blue2:#2440d6}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Plus Jakarta Sans",system-ui,sans-serif;overflow-x:clip}
+body.lock{overflow:hidden}
+a{color:inherit}
+img{max-width:100%;display:block}
+.wrap{max-width:1180px;margin:0 auto}
+.band{padding:clamp(48px,7vw,96px) max(5vw,16px)}
+h1,h2,h3{font-weight:700;line-height:1.1;margin:0;text-wrap:balance;letter-spacing:-.02em}
+h1{font-size:clamp(38px,5.2vw,60px)}
+h2{font-size:clamp(30px,3.6vw,42px)}
+h3{font-size:20px;letter-spacing:-.01em}
+p{margin:0}
+.lead{font-size:17px;max-width:52ch;color:var(--soft)}
+.label{font-size:14px;font-weight:700;color:var(--blue);margin-bottom:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border-radius:12px;font-weight:700;text-decoration:none;font-size:15px;transition:background .2s,border-color .2s;cursor:pointer;font-family:inherit;border:0}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.btn-acc{background:var(--blue);color:#fff}.btn-acc:hover{background:var(--blue2)}
+.btn-ghost{background:var(--bg);color:var(--ink);border:1.5px solid var(--line)}.btn-ghost:hover{border-color:var(--ink)}
+
+nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:24px;padding:12px max(5vw,16px);flex-wrap:wrap}
+.logo{font-size:22px;font-weight:800;text-decoration:none;letter-spacing:-.03em}
+.logo i{font-style:normal;color:var(--blue)}
+.links{display:flex;gap:24px;margin-left:auto;flex-wrap:wrap}
+.links a{text-decoration:none;font-size:15px;font-weight:500;color:var(--soft)}
+.links a:hover{color:var(--ink)}
+nav .btn{min-height:42px;padding:0 18px}
+
+/* hero */
+.hero{background:var(--tint)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,5vw,64px);align-items:center}
+.hero h1 em{font-style:normal;color:var(--blue)}
+.hero .lead{margin:20px 0 32px;max-width:40ch}
+.status{display:inline-block;font-size:14px;font-weight:600;padding:6px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--line);margin-bottom:20px}
+.ctas{display:flex;gap:12px;flex-wrap:wrap}
+.facts{display:flex;gap:32px;flex-wrap:wrap;margin-top:36px;font-size:14px;color:var(--soft)}
+.facts b{display:block;font-size:24px;color:var(--ink);letter-spacing:-.02em}
+.ba{position:relative;aspect-ratio:4/3;background:#d9d7d2;width:100%;border-radius:20px;overflow:hidden;box-shadow:0 24px 48px -24px rgba(30,45,120,.35);user-select:none;touch-action:pan-y}
+.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity .3s}
+.ba.swap img{opacity:0}
+.ba .after{clip-path:inset(0 0 0 var(--p,50%))}
+.ba input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0;z-index:3}
+.split{position:absolute;top:0;bottom:0;left:var(--p,50%);width:2px;background:#fff;z-index:2;pointer-events:none}
+.knob{position:absolute;top:50%;left:var(--p,50%);width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:#fff;color:var(--blue);display:grid;place-items:center;font-weight:700;z-index:2;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+.ba input:focus-visible~.knob{outline:3px solid var(--blue);outline-offset:3px}
+.tag{position:absolute;bottom:14px;z-index:2;font-size:13px;font-weight:700;padding:5px 12px;border-radius:8px;background:#fff;color:#111318;pointer-events:none}
+.tag.l{left:14px}.tag.r{right:14px}
+.ba.hint .after{transition:clip-path .9s cubic-bezier(.6,0,.2,1)}.ba.hint .split,.ba.hint .knob{transition:left .9s cubic-bezier(.6,0,.2,1)}
+.note{font-size:13px;color:var(--soft);margin-top:10px}
+.pairs{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.pairs button{display:flex;align-items:center;gap:8px;min-height:44px;padding:4px 12px 4px 4px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font:600 14px "Plus Jakarta Sans",sans-serif;cursor:pointer}
+.pairs button img{width:48px;height:36px;object-fit:cover;border-radius:6px}
+.pairs button[aria-pressed=true]{border-color:var(--blue);color:var(--blue)}
+
+/* work */
+.head{display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap;margin-bottom:28px}
+.head p{color:var(--soft);max-width:46ch}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.filters button{font:600 14px "Plus Jakarta Sans",sans-serif;min-height:42px;padding:0 16px;border-radius:10px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.filters button small{font-size:12px;color:var(--soft);margin-left:4px}
+.filters button[aria-pressed=true]{background:var(--blue);color:#fff;border-color:var(--blue)}
+.filters button[aria-pressed=true] small{color:#dbe2ff}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.slot{border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--line);cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit;display:block;width:100%}
+.slot .ph{aspect-ratio:4/3;overflow:hidden;background:var(--line)}
+.slot .ph img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.slot:hover .ph img{transform:scale(1.05)}
+.slot .meta{padding:14px 16px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.slot .meta strong{font-size:16px}
+.slot .meta span{font-size:13px;color:var(--soft);white-space:nowrap}
+.more{display:flex;justify-content:center;margin-top:32px}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:50;background:rgba(10,12,18,.92);display:none;flex-direction:column;align-items:center;justify-content:center;padding:56px 16px 20px;gap:14px}
+.lb.open{display:flex;animation:fade .25s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.lb figure{margin:0;max-width:1100px;width:100%;display:flex;flex-direction:column;gap:10px;align-items:center}
+.lb .main{max-height:72vh;width:auto;max-width:100%;border-radius:12px;background:#000;animation:pop .35s cubic-bezier(.2,.7,.2,1)}
+.lb figcaption{color:#fff;font-weight:700}
+.lb figcaption span{color:#a3a8b6;font-weight:500;margin-left:8px}
+.thumbs{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.thumbs button{padding:0;border:2px solid transparent;border-radius:10px;overflow:hidden;width:84px;cursor:pointer;background:none;opacity:.6}
+.thumbs button[aria-current=true]{border-color:#fff;opacity:1}
+.thumbs img{aspect-ratio:4/3;object-fit:cover}
+.lbx{position:absolute;width:48px;height:48px;border-radius:50%;border:0;background:#fff;color:#111318;font-size:20px;font-weight:700;cursor:pointer;display:grid;place-items:center}
+.lbx.close{top:12px;right:12px}
+.lbx.prev{left:12px;top:50%;margin-top:-24px}.lbx.next{right:12px;top:50%;margin-top:-24px}
+
+/* services */
+.alt{background:var(--card)}
+.svc{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.svc article{padding:28px;border-radius:16px;background:var(--bg);border:1px solid var(--line)}
+.svc p{color:var(--soft);margin:10px 0 16px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips span{font-size:13px;font-weight:600;padding:5px 11px;border-radius:8px;background:var(--tint);color:var(--blue)}
+
+/* process */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.step{border-radius:16px;padding:28px;border:1px solid var(--line)}
+.step .when{display:inline-block;font-size:13px;font-weight:700;color:#fff;background:var(--blue);padding:4px 10px;border-radius:8px}
+.step h3{margin:14px 0 8px}
+.step p{color:var(--soft)}
+.deliver{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.deliver span{font-size:14px;font-weight:600;padding:8px 14px;border-radius:10px;background:var(--card);border:1px solid var(--line)}
+
+/* about */
+.about{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,5vw,64px);align-items:center}
+.portrait{border-radius:20px;overflow:hidden;background:var(--tint);aspect-ratio:4/5;max-width:460px;width:100%}
+.portrait img{width:100%;height:100%;object-fit:cover}
+.about .lead{margin:16px 0 24px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tools span{font-size:14px;font-weight:600;padding:7px 13px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+
+/* faq */
+.faq{max-width:780px}
+details{border-bottom:1px solid var(--line)}
+summary{cursor:pointer;list-style:none;padding:20px 40px 20px 0;font-size:17px;font-weight:700;position:relative}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";position:absolute;right:4px;top:15px;font-size:24px;font-weight:500;color:var(--blue);transition:transform .2s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{padding:0 0 20px;margin:0;color:var(--soft);max-width:64ch}
+.ans{overflow:hidden}
+details.closing summary::after{transform:none}
+
+/* contact */
+.contact{background:var(--blue);color:#fff;text-align:center}
+.contact h2{font-size:clamp(32px,4.6vw,52px)}
+.contact p{color:#dbe2ff;margin:16px auto 28px;max-width:46ch}
+.mail{font-size:clamp(22px,2.8vw,30px);font-weight:700;display:block;margin-bottom:24px;text-decoration:none;overflow-wrap:anywhere}
+.mail:hover{text-decoration:underline}
+.contact .btn{background:#fff;color:var(--blue)}
+.contact .btn-line{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.6)}.contact .btn-line:hover{border-color:#fff}
+footer{background:var(--bg);color:var(--soft);font-size:14px;border-top:1px solid var(--line)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:22px max(5vw,16px)}
+footer a{text-decoration:none}
+.fl{display:flex;gap:20px;flex-wrap:wrap}.fl a:hover{color:var(--ink)}
+
+/* motion */
+.rv{opacity:0;transform:translateY(32px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0s)}
+.rv.up{transform:translateY(-32px)}
+.rv.in{opacity:1;transform:none}
+.grid .slot{animation:pop .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*60ms)}
+@keyframes pop{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.grid.out .slot{opacity:0;transform:scale(.97);transition:opacity .18s,transform .18s;animation:none}
+
+@media(max-width:900px){
+ .hero .wrap,.about{grid-template-columns:minmax(0,1fr)}
+ .grid,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+ .links{display:none}
+ nav .btn{margin-left:auto}
+ .grid,.steps,.svc{grid-template-columns:minmax(0,1fr)}
+ .lbx.prev,.lbx.next{top:auto;bottom:16px;margin:0}
+ .thumbs button{width:64px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<nav aria-label="Main">
+ <div class="wrap">
+  <a class="logo" href="#top">kim<i>.</i></a>
+  <div class="links">
+   <a href="#work">Work</a><a href="#services">Services</a><a href="#process">Process</a><a href="#about">About</a><a href="#faq">FAQ</a><a href="https://www.linkedin.com/in/kim-roxane-773705310/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+  <a class="btn btn-acc" href="#contact">Hire me</a>
+ </div>
+</nav>
+
+<header class="hero band" id="top">
+ <div class="wrap">
+  <div class="txt">
+   <span class="status">Open for freelance work</span>
+   <h1>Hi, I'm Kim. I create product photos with <em>AI</em> for brands.</h1>
+   <p class="lead">AI product photos and 3D mockups that look real, ready for ads, marketplaces and pitches.</p>
+   <div class="ctas">
+    <a class="btn btn-acc" href="#contact">Start a project</a>
+    <a class="btn btn-ghost" href="#work">See my work</a>
+   </div>
+   <div class="facts">
+    <div><b>48</b>mockup sets</div>
+    <div><b>7+ yrs</b>in visual design</div>
+    <div><b>Remote</b>working worldwide</div>
+   </div>
+  </div>
+  <div class="pic">
+   <div class="ba" id="ba" style="--p:50%">
+    <img class="before" id="baBefore" src="images/before-after/macbook-before-1.webp" alt="Before: original MacBook photo" width="1200" height="900">
+    <img class="after" id="baAfter" src="images/mockups/macbook-1.webp" alt="After: finished MacBook mockup" width="1200" height="900">
+    <span class="split"></span>
+    <input type="range" min="0" max="100" value="50" id="baRange" aria-label="Drag to compare before and after">
+    <span class="knob" aria-hidden="true">⇆</span>
+    <span class="tag l">Before</span><span class="tag r">After</span>
+   </div>
+   <div class="pairs" id="pairs" role="group" aria-label="Choose a before and after">
+    <button type="button" aria-pressed="true" data-k="1"><img src="images/mockups/macbook-1.webp" alt="">Shot 1</button>
+    <button type="button" aria-pressed="false" data-k="2"><img src="images/mockups/macbook-2.webp" alt="">Shot 2</button>
+    <button type="button" aria-pressed="false" data-k="3"><img src="images/mockups/macbook-3.webp" alt="">Shot 3</button>
+   </div>
+   <p class="note">Real edit: MacBook mockup, original photo vs final image. Drag to compare.</p>
+  </div>
+ </div>
+</header>
+
+<section class="band" id="work">
+ <div class="wrap">
+  <div class="head">
+   <div><div class="label">Selected work</div><h2>AI 3D mockups.</h2></div>
+  </div>
+  <div class="filters" role="group" aria-label="Filter work" id="filters"></div>
+  <div class="grid" id="grid"></div>
+  <div class="more"><button type="button" class="btn btn-ghost" id="more">Show more</button></div>
+ </div>
+</section>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Project images">
+ <button class="lbx close" type="button" id="lbClose" aria-label="Close">✕</button>
+ <button class="lbx prev" type="button" id="lbPrev" aria-label="Previous image">‹</button>
+ <button class="lbx next" type="button" id="lbNext" aria-label="Next image">›</button>
+ <figure>
+  <img class="main" id="lbImg" alt="">
+  <figcaption id="lbCap"></figcaption>
+  <div class="thumbs" id="lbThumbs"></div>
+ </figure>
+</div>
+
+<section class="band alt" id="services">
+ <div class="wrap">
+  <div class="head">
+   <div><div class="label">Services</div><h2>What I make.</h2></div>
+   <p>Your product stays true to the real thing: shape, label and colour are kept, only the scene and finish change.</p>
+  </div>
+  <div class="svc">
+   <article>
+    <h3>AI 3D mockups</h3>
+    <p>See bottles, cans, boxes, apparel and print in realistic scenes before anything is produced.</p>
+    <div class="chips"><span>Packaging</span><span>Apparel</span><span>Print &amp; devices</span></div>
+   </article>
+   <article>
+    <h3>AI product scenes</h3>
+    <p>Place your product into studio sets or lifestyle scenes that match the brand, without a new photoshoot.</p>
+    <div class="chips"><span>Studio sets</span><span>Lifestyle scenes</span><span>Seasonal themes</span></div>
+   </article>
+   <article>
+    <h3>Product retouching</h3>
+    <p>Clean-up, colour correction, label fixes and consistent lighting across a full set of product photos.</p>
+    <div class="chips"><span>Clean-up</span><span>Colour match</span><span>Catalogue sets</span></div>
+   </article>
+   <article>
+    <h3>Campaign &amp; marketplace visuals</h3>
+    <p>Finished images for paid social, banners and marketplace listings, sized for every channel.</p>
+    <div class="chips"><span>Paid social</span><span>Banners</span><span>Marketplace sizes</span></div>
+   </article>
+  </div>
+ </div>
+</section>
+
+<section class="band" id="process">
+ <div class="wrap">
+  <div class="head">
+   <div><div class="label">How it works</div><h2>From brief to final image.</h2></div>
+  </div>
+  <div class="steps">
+   <div class="step"><div class="when">First</div><h3>Send your brief</h3><p>Product photos or a dieline, logo, brand colours, references and where the images will be used.</p></div>
+   <div class="step"><div class="when">Then</div><h3>I create the images</h3><p>Scene and lighting first, then your design on the product, then sizing for each channel.</p></div>
+   <div class="step"><div class="when">Finally</div><h3>Review &amp; deliver</h3><p>We refine together, and you get files ready to post, print or keep editing.</p></div>
+  </div>
+  <div class="deliver"><span>High-res JPG / PNG</span><span>Layered PSD</span><span>Sized for each platform</span></div>
+ </div>
+</section>
+
+<section class="band alt" id="about">
+ <div class="wrap about">
+  <div class="portrait"><img src="images/kim-photo.webp" alt="Portrait of Kim Roxane" width="800" height="1000" loading="lazy"></div>
+  <div>
+   <div class="label">About</div>
+   <h2>Seven years of visual design, now focused on product images.</h2>
+   <p class="lead">I spent years turning raw content into clear, persuasive visuals: pitch decks, one-pagers, posters and social graphics. Today I use AI to create product photos and mockups that look real, with the same eye for brand and detail.</p>
+   <div class="tools"><span>Photoshop</span><span>Illustrator</span><span>Figma</span><span>Canva</span><span>AI image tools</span></div>
+  </div>
+ </div>
+</section>
+
+<section class="band" id="faq">
+ <div class="wrap faq">
+  <div class="label">FAQ</div>
+  <h2 style="margin-bottom:24px">Questions, answered.</h2>
+  <details open><summary>What do you need from me to start?</summary><div class="ans"><p>Your product photos or packaging design, logo and brand colours, a few references for the look you want, where the images will be used, and the deadline.</p></div></details>
+  <details><summary>Will the images look AI-generated?</summary><div class="ans"><p>The goal is a natural, believable photo. Your design is placed and refined by hand so the label, shape and colour stay accurate.</p></div></details>
+  <details><summary>Can you make mockups before we print?</summary><div class="ans"><p>Yes. Send the design file and I can show it on a bottle, box, bag, shirt or screen so you can check it before production.</p></div></details>
+  <details><summary>Which files will I get?</summary><div class="ans"><p>High-resolution JPG or PNG in the sizes you need, plus layered PSD files when you want to keep editing.</p></div></details>
+  <details><summary>How long does a project take?</summary><div class="ans"><p>It depends on the number of images and the type of work. You get a confirmed timeline after I see the brief.</p></div></details>
+ </div>
+</section>
+
+<section class="band contact" id="contact">
+ <div class="wrap">
+  <h2>Have a product to show?</h2>
+  <p>Send a few details about your product and where the images will be used. I will reply with ideas and a timeline.</p>
+  <a class="mail" href="mailto:kim@framelab.site">kim@framelab.site</a>
+  <div class="ctas" style="justify-content:center"><a class="btn" href="mailto:kim@framelab.site?subject=Product%20image%20project">Email me</a><a class="btn btn-line" href="https://www.linkedin.com/in/kim-roxane-773705310/" target="_blank" rel="noopener">Connect on LinkedIn</a></div>
+ </div>
+</section>
+
+<footer>
+ <div class="wrap">
+  <span>© <span id="yr">2026</span> Kim Roxane. AI product photos &amp; mockups.</span>
+  <span class="fl"><a href="https://www.linkedin.com/in/kim-roxane-773705310/" target="_blank" rel="noopener">LinkedIn</a><a href="mailto:kim@framelab.site">Email</a><a href="#top">Back to top ↑</a></span>
+ </div>
+</footer>
+
+<script>
+{
+ /* Portfolio data: n = name, c = category, i = image files in images/mockups/ (without .webp) */
+ const work=[{"n":"Cosmetic Bottle","c":"beauty","i":["cosmetic-bottle-1","cosmetic-bottle-2","cosmetic-bottle-3"]},{"n":"Alcohol Bottle","c":"drinks","i":["alcohol-bottle-1","alcohol-bottle-2","alcohol-bottle-3"]},{"n":"Gable Box","c":"packaging","i":["gable-box-1","gable-box-2","gable-box-3"]},{"n":"Baseball Jersey","c":"apparel","i":["baseball-jersey-1","baseball-jersey-2","baseball-jersey-3"]},{"n":"Book","c":"print","i":["book-1","book-2","book-3"]},{"n":"Cosmetic Bottle 2","c":"beauty","i":["cosmetic-bottle-2-1","cosmetic-bottle-2-2","cosmetic-bottle-2-3"]},{"n":"Alcohol Bottle 2","c":"drinks","i":["alcohol-bottle-2-1","alcohol-bottle-2-2","alcohol-bottle-2-3"]},{"n":"Gift Box","c":"packaging","i":["gift-box-1","gift-box-2","gift-box-3"]},{"n":"Basketball Jersey","c":"apparel","i":["basketball-jersey-1","basketball-jersey-2","basketball-jersey-3"]},{"n":"Book 2","c":"print","i":["book-2-1","book-2-2","book-2-3"]},{"n":"Cosmetic Bottle 3","c":"beauty","i":["cosmetic-bottle-3-1","cosmetic-bottle-3-2","cosmetic-bottle-3-3"]},{"n":"Alcohol Bottle 3","c":"drinks","i":["alcohol-bottle-3-1","alcohol-bottle-3-2","alcohol-bottle-3-3"]},{"n":"Packaging","c":"packaging","i":["packaging-1","packaging-2","packaging-3"]},{"n":"Sports Bag","c":"apparel","i":["sports-bag-1","sports-bag-2","sports-bag-3"]},{"n":"Business Card","c":"print","i":["business-car-1","business-car-2","business-car-3"]},{"n":"Cosmetic Jar","c":"beauty","i":["cosmetic-jar-1","cosmetic-jar-2","cosmetic-jar-3"]},{"n":"Beverage","c":"drinks","i":["beverage-1","beverage-2","beverage-3"]},{"n":"Packaging 2","c":"packaging","i":["packaging-2-1","packaging-2-2","packaging-2-3"]},{"n":"Sports Jacket","c":"apparel","i":["sports-jacket-1","sports-jacket-2","sports-jacket-3"]},{"n":"Business Card 2","c":"print","i":["business-card-2-1","business-card-2-2","business-card-2-3"]},{"n":"Cosmetic Tube","c":"beauty","i":["cosmetic-tube-1","cosmetic-tube-2","cosmetic-tube-3"]},{"n":"Beverage 2","c":"drinks","i":["beverage-2-1","beverage-2-2","beverage-2-3"]},{"n":"Parcel","c":"packaging","i":["parcel-1","parcel-2","parcel-3"]},{"n":"Sports Jacket 2","c":"apparel","i":["sports-jacket-2-1","sports-jacket-2-2","sports-jacket-2-3"]},{"n":"Business Card 3","c":"print","i":["business-card-3-1","business-card-3-2","business-card-3-3"]},{"n":"Cosmetic Tube 2","c":"beauty","i":["cosmetic-tube-2-1","cosmetic-tube-2-2","cosmetic-tube-2-3"]},{"n":"Beverage 3","c":"drinks","i":["beverage-3-1","beverage-3-2","beverage-3-3"]},{"n":"Pizza Box","c":"packaging","i":["pizza-box-1","pizza-box-2","pizza-box-3"]},{"n":"Sports Jersey","c":"apparel","i":["sports-jersey-1","sports-jersey-2","sports-jersey-3"]},{"n":"Business Card 4","c":"print","i":["business-card-4-1","business-card-4-2","business-card-4-3"]},{"n":"Cosmetic Tube 3","c":"beauty","i":["cosmetic-tube-3-1","cosmetic-tube-3-2","cosmetic-tube-3-3"]},{"n":"Beverage Can","c":"drinks","i":["beverage-can-1","beverage-can-2","beverage-can-3"]},{"n":"Suitcase","c":"apparel","i":["suitcase-1","suitcase-2","suitcase-3"]},{"n":"iPhone","c":"print","i":["iphone-1","iphone-2","iphone-3"]},{"n":"Nail Polish Bottle","c":"beauty","i":["nail-polish-bottle-1","nail-polish-bottle-2","nail-polish-bottle-3"]},{"n":"Beverage Can 2","c":"drinks","i":["beverage-can-2-1","beverage-can-2-2","beverage-can-2-3"]},{"n":"T Shirt","c":"apparel","i":["t-shirt-1","t-shirt-2","t-shirt-3"]},{"n":"iPhone 2","c":"print","i":["iphone-2-1","iphone-2-2","iphone-2-3"]},{"n":"Perfume Bottle","c":"beauty","i":["perfume-bottle-1","perfume-bottle-2","perfume-bottle-3"]},{"n":"T Shirt 2","c":"apparel","i":["t-shirt-2-1","t-shirt-2-2","t-shirt-2-3"]},{"n":"iPhone 3","c":"print","i":["iphone-3-1","iphone-3-2","iphone-3-3"]},{"n":"Serum Bottle","c":"beauty","i":["serum-bottle-1","serum-bottle-2","serum-bottle-3"]},{"n":"Tote Bag","c":"apparel","i":["tote-bag-1","tote-bag-2","tote-bag-3"]},{"n":"MacBook","c":"print","i":["macbook-1","macbook-2","macbook-3"]},{"n":"Serum Bottle 2","c":"beauty","i":["serum-bottle-2-1","serum-bottle-2-2","serum-bottle-2-3"]},{"n":"Poster","c":"print","i":["poster-1","poster-2","poster-3"]},{"n":"Serum Bottle 3","c":"beauty","i":["serum-bottle-3-1","serum-bottle-3-2","serum-bottle-3-3"]},{"n":"Poster 2","c":"print","i":["poster-2-1","poster-2-2","poster-2-3"]}];
+ const cats=[['all','All'],['beauty','Beauty'],['drinks','Drinks'],['packaging','Packaging'],['apparel','Apparel & bags'],['print','Print & devices']];
+ const catName=Object.fromEntries(cats);
+ const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const src=f=>'images/mockups/'+f+'.webp';
+ const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const grid=document.getElementById('grid'),moreBtn=document.getElementById('more'),filters=document.getElementById('filters');
+ const STEP=9;let cur='all',shown=STEP,list=[];
+
+ filters.innerHTML=cats.map(([k,l])=>{const n=k==='all'?work.length:work.filter(w=>w.c===k).length;
+  return `<button type="button" data-f="${k}" aria-pressed="${k==='all'}">${esc(l)}<small>${n}</small></button>`}).join('');
+
+ const render=(from=0)=>{
+  list=work.filter(w=>cur==='all'||w.c===cur);
+  const html=list.slice(from,shown).map((w,k)=>`<button type="button" class="slot" data-n="${from+k}" style="--i:${k}"><div class="ph"><img src="${src(w.i[0])}" alt="${esc(w.n)} mockup" loading="lazy" width="1200" height="902"></div><div class="meta"><strong>${esc(w.n)}</strong><span>${esc(catName[w.c])} · ${w.i.length} shots</span></div></button>`).join('');
+  if(from)grid.insertAdjacentHTML('beforeend',html);else grid.innerHTML=html;
+  moreBtn.parentElement.style.display=shown<list.length?'':'none';
+ };
+ render();
+ moreBtn.addEventListener('click',()=>{const f=shown;shown+=STEP;render(f)});
+ filters.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||b.dataset.f===cur)return;
+  cur=b.dataset.f;shown=STEP;
+  filters.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  if(rm){render();return}
+  grid.classList.add('out');setTimeout(()=>{render();grid.classList.remove('out')},180);
+ });
+
+ /* Lightbox */
+ const lb=document.getElementById('lb'),lbImg=document.getElementById('lbImg'),lbCap=document.getElementById('lbCap'),lbThumbs=document.getElementById('lbThumbs');
+ let p=null,s=0,last=null;
+ const show=()=>{const w=list[p];lbImg.src=src(w.i[s]);lbImg.alt=w.n+' mockup, shot '+(s+1);
+  lbImg.style.animation='none';void lbImg.offsetWidth;lbImg.style.animation='';
+  lbCap.innerHTML=esc(w.n)+`<span>${s+1} / ${w.i.length}</span>`;
+  lbThumbs.innerHTML=w.i.map((f,k)=>`<button type="button" data-s="${k}" aria-current="${k===s}" aria-label="Shot ${k+1}"><img src="${src(f)}" alt=""></button>`).join('')};
+ const open=n=>{p=n;s=0;last=document.activeElement;show();lb.classList.add('open');document.body.classList.add('lock');document.getElementById('lbClose').focus()};
+ const close=()=>{lb.classList.remove('open');document.body.classList.remove('lock');last&&last.focus()};
+ const step=d=>{const w=list[p];s+=d;
+  if(s>=w.i.length){p=(p+1)%list.length;s=0}else if(s<0){p=(p-1+list.length)%list.length;s=list[p].i.length-1}show()};
+ grid.addEventListener('click',e=>{const b=e.target.closest('.slot');if(b)open(+b.dataset.n)});
+ lbThumbs.addEventListener('click',e=>{const b=e.target.closest('button');if(b){s=+b.dataset.s;show()}});
+ document.getElementById('lbClose').addEventListener('click',close);
+ document.getElementById('lbPrev').addEventListener('click',()=>step(-1));
+ document.getElementById('lbNext').addEventListener('click',()=>step(1));
+ lb.addEventListener('click',e=>{if(e.target===lb)close()});
+ document.addEventListener('keydown',e=>{if(!lb.classList.contains('open'))return;
+  if(e.key==='Escape')close();else if(e.key==='ArrowRight')step(1);else if(e.key==='ArrowLeft')step(-1)});
+
+ /* Reveal on scroll */
+ const targets=document.querySelectorAll('.head,.filters,.svc article,.step,.deliver,.portrait,.about>div:last-child,details,.contact .wrap,.hero .txt,.hero .pic');
+ targets.forEach(el=>{el.classList.add('rv');const sib=[...el.parentElement.children].filter(c=>c.matches('.svc article,.step,details'));const k=sib.indexOf(el);if(k>0)el.style.setProperty('--d',(k*.08)+'s')});
+ if('IntersectionObserver' in window&&!rm){
+  const io=new IntersectionObserver(es=>es.forEach(e=>{const el=e.target;if(e.isIntersecting){el.classList.add('in')}else{el.classList.remove('in');el.classList.toggle('up',e.boundingClientRect.top<0)}}),{threshold:.12});
+  targets.forEach(el=>io.observe(el));
+ }else targets.forEach(el=>el.classList.add('in'));
+ document.querySelector('.hero .pic').style.setProperty('--d','.15s');
+
+ /* Before/after slider, sweeps once on load */
+ const ba=document.getElementById('ba'),r=document.getElementById('baRange');
+ const set=v=>ba.style.setProperty('--p',v+'%');
+ r.addEventListener('input',()=>set(r.value));
+ const pairs=document.getElementById('pairs'),bB=document.getElementById('baBefore'),bA=document.getElementById('baAfter');
+ pairs.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.getAttribute('aria-pressed')==='true')return;
+  pairs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  const k=b.dataset.k,go=()=>{bB.src='images/before-after/macbook-before-'+k+'.webp';bA.src='images/mockups/macbook-'+k+'.webp';ba.classList.remove('swap')};
+  if(rm)go();else{ba.classList.add('swap');setTimeout(go,300)}});
+ if(!rm){ba.classList.add('hint');set(80);
+  setTimeout(()=>set(25),1000);setTimeout(()=>{set(50);r.value=50},2000);
+  setTimeout(()=>ba.classList.remove('hint'),3000);
+  r.addEventListener('pointerdown',()=>ba.classList.remove('hint'))}
+
+ /* FAQ: one open at a time, animated */
+ const faq=[...document.querySelectorAll('.faq details')];
+ const closeD=d=>{const a=d.querySelector('.ans');if(rm){d.open=false;return}
+  d.classList.add('closing');const an=a.animate([{height:a.offsetHeight+'px',opacity:1},{height:'0px',opacity:0}],{duration:260,easing:'ease'});
+  an.onfinish=()=>{d.open=false;d.classList.remove('closing')}};
+ const openD=d=>{d.open=true;if(rm)return;const a=d.querySelector('.ans');
+  a.animate([{height:'0px',opacity:0,transform:'translateY(-6px)'},{height:a.scrollHeight+'px',opacity:1,transform:'none'}],{duration:340,easing:'cubic-bezier(.2,.7,.2,1)'})};
+ faq.forEach(d=>d.querySelector('summary').addEventListener('click',e=>{e.preventDefault();
+  if(d.classList.contains('closing'))return;
+  if(d.open){closeD(d)}else{faq.forEach(o=>{if(o!==d&&o.open)closeD(o)});openD(d)}}));
+
+ document.getElementById('yr').textContent=new Date().getFullYear();
+}
+</script>
+</body>
+</html>
