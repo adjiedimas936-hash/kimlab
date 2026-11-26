@@ -358,8 +358,8 @@ footer a{text-decoration:none}
   if(!from&&visIO){visIO.disconnect();live.clear()}
   list=work.filter(w=>cur==='all'||w.c===cur);
   const html=list.slice(from,shown).map((w,k)=>`<button type="button" class="slot" data-n="${from+k}" style="--i:${k}"><div class="ph">${w.i.map((f,j)=>`<img ${j?'data-src':'src'}="${src(f)}" alt="${esc(w.n)} mockup, shot ${j+1}" ${j?'':'class="on"'} loading="lazy" width="1200" height="900">`).join('')}<div class="bars" aria-hidden="true">${w.i.map(()=>'<i></i>').join('')}</div></div><div class="meta"><strong>${esc(w.n)}</strong><span>${esc(catName[w.c])}</span></div></button>`).join('');
-  grid.querySelectorAll('.slot:not([data-show])').forEach(watch);
   if(from)grid.insertAdjacentHTML('beforeend',html);else grid.innerHTML=html;
+  grid.querySelectorAll('.slot:not([data-show])').forEach(watch);
   moreBtn.parentElement.style.display=shown<list.length?'':'none';
  };
  /* Showcase: each visible card cycles through all its shots */
