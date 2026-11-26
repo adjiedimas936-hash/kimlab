@@ -85,10 +85,10 @@ nav .btn{min-height:42px;padding:0 18px}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
 .slot{border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--line);cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit;display:block;width:100%}
 .slot .ph{aspect-ratio:4/3;overflow:hidden;background:var(--line);position:relative}
-.slot .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.06);transition:opacity .9s ease,transform 3.2s ease-out}
+.slot .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.06);transition:opacity .45s ease,transform 1.6s ease-out}
 .slot .ph img.on{opacity:1;transform:scale(1)}
-.slot:hover .ph img.on{transform:scale(1.04);transition:opacity .9s ease,transform .6s cubic-bezier(.2,.7,.2,1)}
-.bars{position:absolute;left:12px;right:12px;bottom:10px;display:flex;gap:4px;z-index:2}
+.bars{position:absolute;left:12px;right:12px;bottom:10px;display:flex;gap:4px;z-index:2;opacity:0;transition:opacity .25s}
+.slot:hover .bars,.slot:focus-visible .bars{opacity:1}
 .bars i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.45);overflow:hidden}
 .bars i::after{content:"";display:block;height:100%;width:0;background:#fff}
 .bars i.done::after{width:100%}
@@ -355,24 +355,26 @@ footer a{text-decoration:none}
   return `<button type="button" data-f="${k}" aria-pressed="${k==='all'}">${esc(l)}<small>${n}</small></button>`}).join('');
 
  const render=(from=0)=>{
-  if(!from&&visIO){visIO.disconnect();live.clear()}
   list=work.filter(w=>cur==='all'||w.c===cur);
   const html=list.slice(from,shown).map((w,k)=>`<button type="button" class="slot" data-n="${from+k}" style="--i:${k}"><div class="ph">${w.i.map((f,j)=>`<img ${j?'data-src':'src'}="${src(f)}" alt="${esc(w.n)} mockup, shot ${j+1}" ${j?'':'class="on"'} loading="lazy" width="1200" height="900">`).join('')}<div class="bars" aria-hidden="true">${w.i.map(()=>'<i></i>').join('')}</div></div><div class="meta"><strong>${esc(w.n)}</strong><span>${esc(catName[w.c])}</span></div></button>`).join('');
   if(from)grid.insertAdjacentHTML('beforeend',html);else grid.innerHTML=html;
   grid.querySelectorAll('.slot:not([data-show])').forEach(watch);
   moreBtn.parentElement.style.display=shown<list.length?'':'none';
  };
- /* Showcase: each visible card cycles through all its shots */
- const DUR=2800,live=new Set();
- const visIO='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(e=>{const c=e.target;
-   if(e.isIntersecting){c.querySelectorAll('img[data-src]').forEach(i=>{i.src=i.dataset.src;i.removeAttribute('data-src')});live.add(c);if(!c._t)c._t=setTimeout(()=>{c._t=null;startBar(c)},(+c.dataset.off||0)%3*450)}else live.delete(c)}),{threshold:.35}):null;
- function startBar(c){const bars=c.querySelectorAll('.bars i'),k=+c.dataset.k||0;
-  bars.forEach((b,j)=>{b.classList.toggle('done',j<k);b.classList.remove('run')});
-  if(rm||!bars[k])return;void bars[k].offsetWidth;bars[k].style.setProperty('--dur',DUR+'ms');bars[k].classList.add('run');
-  c._t=setTimeout(()=>{c._t=null;if(!c.isConnected||!live.has(c))return;if(c.matches(':hover')){startBar(c);return}step2(c)},DUR)}
- function step2(c){const imgs=c.querySelectorAll('.ph img');let k=((+c.dataset.k||0)+1)%imgs.length;c.dataset.k=k;
-  imgs.forEach((im,j)=>im.classList.toggle('on',j===k));startBar(c)}
- function watch(c,j){c.dataset.show='1';c.dataset.k=0;c.dataset.off=j;if(visIO)visIO.observe(c)}
+ /* Showcase: a card cycles through its shots only while hovered or focused */
+ const DUR=1500;
+ const lazyIO='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){loadAll(e.target);lazyIO.unobserve(e.target)}}),{rootMargin:'200px'}):null;
+ function loadAll(c){c.querySelectorAll('img[data-src]').forEach(i=>{i.src=i.dataset.src;i.removeAttribute('data-src')})}
+ function paint(c){const k=+c.dataset.k||0;c.querySelectorAll('.ph img').forEach((im,j)=>im.classList.toggle('on',j===k));
+  c.querySelectorAll('.bars i').forEach((b,j)=>{b.classList.toggle('done',j<k);b.classList.remove('run')})}
+ function run(c){clearTimeout(c._t);paint(c);if(!c._play)return;const b=c.querySelectorAll('.bars i')[+c.dataset.k||0];
+  if(b){void b.offsetWidth;b.style.setProperty('--dur',DUR+'ms');b.classList.add('run')}
+  c._t=setTimeout(()=>{if(!c._play)return;const n=c.querySelectorAll('.ph img').length;c.dataset.k=((+c.dataset.k||0)+1)%n;run(c)},DUR)}
+ function play(c){if(rm||c._play)return;loadAll(c);c._play=true;run(c)}
+ function stop(c){c._play=false;clearTimeout(c._t);c.dataset.k=0;paint(c)}
+ function watch(c){c.dataset.show='1';c.dataset.k=0;if(lazyIO)lazyIO.observe(c);
+  c.addEventListener('mouseenter',()=>play(c));c.addEventListener('mouseleave',()=>stop(c));
+  c.addEventListener('focus',()=>play(c));c.addEventListener('blur',()=>stop(c))}
  render();
  moreBtn.addEventListener('click',()=>{const f=shown;shown+=STEP;render(f)});
  filters.addEventListener('click',e=>{
